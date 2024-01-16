@@ -1,0 +1,153 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{titlesec} % For customizing section titles
+\usepackage{graphicx} % For images
+\usepackage{hyperref} % For hyperlinks
+\usepackage{fancyhdr} % For fancy headers and footers
+\usepackage{lipsum} % For generating dummy text
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{dirtree}
+
+% Set page geometry
+\geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+% Set up hyperref
+\hypersetup{
+    colorlinks=true,
+    allcolors=blue,
+    linkcolor=black,
+    filecolor=cyan,
+    urlcolor=blue,
+}
+
+% Customize section titles
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+% Setup headers and footers
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{3D printing defect detection}
+\lhead{Modeling}
+\rfoot{Page \thepage}
+
+% Title and author
+\title{\textbf{Modeling for 3D printing defect (spaghetti) detection }}
+\author{Michal Raczkowski}
+\date{15-01-2024}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty} % Remove header/footer for the first page
+
+% Insert table of contents
+\newpage
+\tableofcontents
+\newpage
+
+\setcounter{page}{1} % Start page numbering from here
+
+\section{Introduction}
+This document outlines training and configuration of YOLOv8{ \scriptsize \cite{yolo}} model for detecting "spaghetti" problem in 3D printing 
+
+\section{Explanation}
+
+\textbf{YOLO}, which stands for \textit{"You Only Look Once,"} is an object detection algorithm with the following key features:
+
+\begin{enumerate}
+    \item \textbf{Single Pass Detection:} YOLO analyzes the entire image in a single pass, making it significantly faster than methods that scan the image multiple times.
+
+    \item \textbf{Image Division:} The image is divided into a grid. Each grid cell is responsible for detecting objects within its bounds.
+
+    \item \textbf{Bounding Boxes and Class Predictions:} Each cell predicts bounding boxes and class probabilities for these boxes. Each bounding box comes with a confidence score reflecting the likelihood of an object being present and its class.
+
+    \item \textbf{Filtering and Combining Boxes:} YOLO filters out bounding boxes with low confidence scores. It also combines overlapping boxes for the same object into a single box.
+
+    \item \textbf{Output:} The final output is the image with bounding boxes drawn around detected objects, each labeled with the class of the object.
+\end{enumerate}
+
+This approach, where the entire image is processed at once using a single neural network, allows YOLO to perform object detection tasks quickly, suitable for real-time applications.
+
+\section{Dataset}
+To train YOLO model for object detection of "spaghetti" issue we need dataset containing images and their labels which describe where on specific image is "spaghetti" defect, whole process and sourcing is described in document called "Data provisioning.pdf"\\
+Dataset structure should look like this:
+\smallbreak
+{\dirtree{%
+.1 data/.
+.2 images/.
+.3 train/.
+.4 ....
+.3 val/.
+.4 ....
+.2 labels/.
+.4 ....
+.3 train/.
+.4 ....
+.3 val/.
+}}
+
+\section{Configuration}
+For effective training, a configuration file is required for the model. This file provides information about the dataset's location, training and validation images, and specifies which classes correspond to the labels. All this information is stored in the \verb|config.yaml| file. \\
+The \verb|config.yaml|  file should have the following structure::
+\begin{verbatim}
+    path: Repos/OpenWeekProject/data 
+    train: images/train 
+    val: images/train 
+
+    names:
+      0: spaghetti 
+\end{verbatim}
+Explanation:
+\begin{itemize}
+    \item \verb|path:|:describe path of dataset main directory
+    \item \verb|train:|:describe path for train images, it is relative to \verb|path|
+    \item \verb|val:|:describe path for validation images, it is relative to \verb|path|
+    \item \verb|names:|:describe classes used in model
+    \subitem \verb|0:| describe number of class
+    \subitem \verb|"spaghetti"| is name of the class, it could be any custom name
+\end{itemize}
+
+\section{Code}
+
+Python code for training is very straight forward
+
+\begin{verbatim}
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.yaml")  
+    
+    results = model.train(data="config.yaml", epochs=20) 
+\end{verbatim}
+
+Explanation:
+\begin{itemize}
+    \item \verb|from ultralytics import YOLO|: imports the \verb|YOLO| class from the \verb|ultralytics| library, which provides functionalities for YOLO object detection models.
+    \item \verb|model = YOLO("yolov8n.yaml")|: Initializes a YOLO model using the configuration specified in \verb|yolov8n.yaml|, setting up the model's architecture and parameters.
+    \item \verb|results = model.train(data="config.yaml", epochs=20)|: This line trains the YOLO model on a dataset specified in \verb|config.yaml| and performs the training for 20 epochs. An \verb|epoch| refers to one complete pass through the entire training dataset. In this case, the model will go through the dataset 20 times, each time updating its parameters to improve its accuracy and performance in object detection. The results of the training process are stored in the variable \verb|results|.
+\end{itemize}
+
+\section{Results}
+
+After executing the code mentioned in the previous section, a new directory named \verb|runs| should appear in the directory where our script is located. The structure of this directory should be as follows:
+{\dirtree{%
+.1 runs/.
+.2 detect/.
+.3 train/.
+.4 weights/ .
+.4 ....
+.3 ....
+}}
+In the  \verb|train| directory, all results are stored, including images of confusion matrices, ROC curves, precision curves, F1 curves, etc. This directory also contains images showing prediction results on the validation set.
+\begin{thebibliography}{9}
+
+    \bibitem{yolo}
+        You Only Look Once: \href{https://github.com/ultralytics/ultralytics}{YOLOv8}: \\
+        {\footnotesize \url{https://github.com/ultralytics/ultralytics}}
+
+
+    \end{thebibliography}
+
+\end{document}
