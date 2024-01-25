@@ -9,7 +9,7 @@
 \usepackage{graphicx}
 \usepackage{subcaption}
 \usepackage{dirtree}
-
+\usepackage{float}
 % Set page geometry
 \geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
 
@@ -35,7 +35,7 @@
 
 % Title and author
 \title{{\textbf{Data provisioning for 3D printing defect (spaghetti) detection}\\ {\small Full version}}}
-\author{Michal Raczkowski}
+\author{Michał Raczkowski}
 \date{15-01-2024}
 
 \begin{document}
@@ -54,14 +54,67 @@
 This document outlines the process of data collection, processing, and labeling for training a YOLO algorithm in detecting defects in 3D printing, with a focus on the "spaghetti" issue.
 
 \section{Data Requirements}
-YOLO algorithm require set of labeled images in YOLO format representing the object we wish the algorithm to recognize. Those images have to be free to use.
+YOLO algorithm require set of labeled images in YOLO format representing the object we wish the algorithm to recognize. 
+\smallbreak
+
+\noindent\textbf{Image Data}
+\begin{itemize}
+    \item Data Type: Image
+    \item Minimum resolution: 640 x 480 pixels
+    \item Color: Grayscale (black and white)
+    \item Format: \verb|.jpg| or \verb|.png| 
+    \item Content: The image should feature a 3D printer's nozzle and a partially printed object with "spaghetti" defect on the print.
+    \item Composition: The composition is such that the print head is in the upper part of the image, and the printed object is clearly visible with "spaghetti" defect.
+    \item Orientation: The orientation should be with the printer oriented for a side view.
+    \item Lighting: The lighting should be sufficient and flat, with no harsh shadows.
+    \item Dimension: The aspect ratio should be standard, possibly 4:3 or similar.
+    \item File Size: The file size should be under one megabyte.
+    \item Legal Considerations: Ensure the image is free of copyright or privacy issues.
+    \item Metadata: Include capture date, time and settings.
+    \item Variety: Some images should be from different angles to provide variety for model 
+\end{itemize}
+
+\noindent\textbf{Example:} Image of "spaghetti" defect from side Figure \ref{fig:imageExample} and \ref{fig:imageExampleRotated}
+\begin{itemize}
+    \item Data Type: Image
+    \item Resolution: 640x480 pixels  
+    \item Color: Grayscale (black and white)
+    \item Format: \verb|.jpg| 
+    \item Rotated: 45 degree only Figure \ref{fig:imageExampleRotated}
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{no_support_57.jpg}
+        \caption{"Spaghetti" issue\cite{onlineOpenSource1}}
+        \label{fig:imageExample}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{leg_broken_11.jpg}
+        \caption{"Spaghetti" issue rotated\cite{onlineOpenSource1}}
+        \label{fig:imageExampleRotated}
+    \end{subfigure}
+    \hfill
+
+    \caption{Example of images}
+    \label{fig:test}
+\end{figure}
+
+
+\newpage
 
 \section{Data Collection}
 Data is collected from homemade pictures displaying failing prints with certain defect and from online open sources\cite{onlineOpenSource1},\cite{onlineOpenSource2}.
 
 \section{Data Understanding}
+In our datasets, we possess a variety of photographs that require filtering to select those most suitable for our model. It's essential to clearly understand our selection criteria while choosing these photos.
+
+\subsection{"Spaghetti" defect recognition}
 Because datasets are made out of photos which displays various types of 3D printed defects we have to choose images which displays relevant issue (spaghetti defect) to our use case
-\begin{figure}[h]
+\begin{figure}[b]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
@@ -88,6 +141,32 @@ Because datasets are made out of photos which displays various types of 3D print
 \end{itemize}
 
 From looking on pictures and understanding displayed issues we can come to conclusion that Figure \ref{fig:image1} will be relevant to our dataset, because it displays "spaghetti" issue which we are focusing on. This kind of filtering have to be done by hand, or we can try to find dataset containing already described images.
+
+\subsection{Correct Composition}
+Upon analyzing the dataset, it becomes apparent that numerous images exhibit the "spaghetti" defect. Our focus should be on photos showcasing a specific composition - a view of the printer bed with the nozzle above it look Figure \ref{fig:compositionDesirable} This is essential since the software's aim is to detect spaghetti defects during printing. Consequently, we've narrowed down the selection to photos that match the composition outlined in the data requirements. Additionally, we can include a few extra images that solely display the "spaghetti" defect Figure \ref{fig:compositionUndesirable} to teach the model about the general shape of this specific defect.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{no_support_57.jpg}
+        \caption{Desirable composition \cite{onlineOpenSource2}}
+        \label{fig:compositionDesirable}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{wholespaghetti.jpg}
+        \caption{Undesirable composition\cite{onlineOpenSource1}}
+        \label{fig:compositionUndesirable}
+    \end{subfigure}
+    \hfill
+
+    \caption{Comparison of image without and with label}
+    \label{fig:test}
+\end{figure}
+
+\newpage
+
 \section{Data Processing}
 \subsection{Dataset structure}
 Dataset we are using is composed of main two important parts:
@@ -117,17 +196,67 @@ Directories \verb|train| contains data on which model is trained
 \smallbreak
 \noindent
 Directories \verb|val| contains data on which model is validated 
+
+\subsection{Change of color}
+Since the images in our dataset are colored, we need to convert them into Grayscale. Various tools such as GIMP, Photoshop, and ImageMagick can be employed for this purpose. Alternatively, online tools like ResizePixel {\scriptsize\cite{imagesOnlineTool}} are also an option for this conversion task.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{no_support_57.jpg}
+        \caption{Grayscale image \cite{onlineOpenSource2}}
+        \label{fig:image1}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{no_support_57_color.jpg}
+        \caption{Color image (labeled)\cite{onlineOpenSource2}}
+        \label{fig:image2}
+    \end{subfigure}
+    \hfill
+
+    \caption{Comparison of image without and with label}
+    \label{fig:test}
+\end{figure}
+
+\subsection{Change of orientation}
+To enhance the diversity of our dataset and improve the accuracy of our model, we should consider rotating a portion of our dataset images. Rotating them by 45 degrees is ideal as it significantly alters the image. For this task, tools such as GIMP, Photoshop, and ImageMagick are suitable options. Additionally, online tools like ResizePixel {\scriptsize\cite{imagesOnlineTool}} can also be used for rotating the images.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{no_support_57.jpg}
+        \caption{"Spaghetti" issue\cite{onlineOpenSource1}}
+        \label{fig:imageExample}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{leg_broken_11.jpg}
+        \caption{"Spaghetti" issue rotated\cite{onlineOpenSource1}}
+        \label{fig:imageExampleRotated}
+    \end{subfigure}
+    \hfill
+
+    \caption{Example of images}
+    \label{fig:test}
+\end{figure}
+
+
+
 \subsection{Why we need to add labels to images?}
 
 Labeling images is essential in training the YOLO (You Only Look Once) object detection algorithm for several reasons: 
 
 \begin{itemize}
     \item \textbf{Training Supervision}: Labels provide the algorithm with examples to learn from, indicating what objects are present in the image and where they are.
-    \item \textbf{Bounding Box Coordinates}:Labels include bounding box coordinates to teach the model how to locate and size objects in an image. 
+    \item \textbf{Bounding Box Coordinates}: Labels include bounding box coordinates to teach the model how to locate and size objects in an image. 
     \item \textbf{Class Identification}: Labels assign a class to each object, helping the model to classify objects correctly.
     \item  \textbf{Model Accuracy and Evaluation}: Good quality labels improve the accuracy of the model and allow for effective evaluation of its performance.
     \item \textbf{Algorithm Optimization}:Accurate labels are crucial for minimizing the loss during training and optimizing the algorithm's performance.
 \end{itemize}
+
 \newpage
 
 \subsection{Process of labeling}
@@ -173,7 +302,6 @@ The final dataset should have this directory structure:
 .4 ....
 }}
 We can observe that labels are stored in separate directories, yet they share the same names as their corresponding images. This correlation is essential, as it enables the algorithm to accurately pair each image file with its respective label file. Additionally, it's important to note that the final dataset will contain many images along with their corresponding labels.
-\newpage
 
 \subsection{Label explained}
 \noindent
@@ -210,6 +338,9 @@ After preforming all those task and reading about importance of labeling in YOLO
     \bibitem{labelingTool3}
         MakeSense: \href{https://www.makesense.ai/}{MakeSense}: \\
         {\footnotesize \url{https://www.makesense.ai/}}
+    \bibitem{imagesOnlineTool}
+    Resizepixel: \href{https://www.resizepixel.com}{Resizepixel}: \\
+        {\footnotesize \url{https://www.resizepixel.com}}
 
     \end{thebibliography}
 
