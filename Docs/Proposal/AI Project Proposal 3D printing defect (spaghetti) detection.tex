@@ -121,12 +121,15 @@ Nature of this problem is classification because we have to classify if spaghett
 The picture shows an unordered structure of plastic filament, which resembles spaghetti, instead of a correctly structured model.
 
 \section{Data Preparation}
+\subsection{Sources}
+Sources of images should be free online datasets or homemade pictures 
+\subsection{Characteristics}
+Images should display process of 3d printing where "spaghetti" defect appeared
 \subsection{Preprocessing Needs}
 To create proper dataset we need to 
 \begin{itemize}
     \item Standardize size of images
     \item Standardize format of images
-    \item Normalize pixels values (usually to the range [0, 1] or [-1, 1]) to facilitate neural network training.
     \item Create annotations
     \item Create label files with annotations
 \end{itemize}
@@ -134,7 +137,6 @@ To create proper dataset we need to
 \begin{itemize}
     \item Cropping images
     \item Converting images to chosen format
-    \item Python
     \item Use annotation tools such as LabelImg or VOTT for annotation
 \end{itemize}
 
